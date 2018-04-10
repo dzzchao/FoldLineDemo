@@ -16,6 +16,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
 
+import com.dzzchao.foldlinedemo.ConvertUtil;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -75,13 +77,14 @@ public class HeartRateLineView extends View {
     /**
      * 绘制主颜色
      */
-    int mColor = Color.parseColor("#CCFFFFFF");
+//    int mColor = Color.parseColor("#CCFFFFFF");
+    int mColor = 0xCCFFFFFF;
 
 
     /**
      * 纵线x轴坐标
      */
-    private float mVerticalLineX = -1000;
+    private float mVerticalLineX = -1;
 
     /**
      * 是否消费事件
@@ -90,7 +93,7 @@ public class HeartRateLineView extends View {
     /**
      * 当前的Key
      */
-    private float mNowKey;
+    private float mNowKey = 0;
     /**
      * 绘制字体大小
      */
@@ -107,11 +110,10 @@ public class HeartRateLineView extends View {
     public HeartRateLineView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         mContext = context;
-        mSelectRateShowHeight = ConvertUtil.dp2px(context, 50);
-        mSelectRateShowWidth = ConvertUtil.dp2px(context, 100);
+        mSelectRateShowHeight = ConvertUtil.dp2px(context, 30);
+        mSelectRateShowWidth = ConvertUtil.dp2px(context, 80);
         mXHeight = ConvertUtil.dp2px(context, 30);
         mYWidth = ConvertUtil.dp2px(context, 30);
-
         mTextSize = ConvertUtil.sp2px(mContext, 12);
     }
 
@@ -135,6 +137,23 @@ public class HeartRateLineView extends View {
     public void setmIsConsumeEvent(boolean isConsumeEvent) {
         this.mIsConsumeEvent = isConsumeEvent;
         invalidate();
+    }
+
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        int widthSpecMode = MeasureSpec.getMode(widthMeasureSpec);
+        int widthSpecSize = MeasureSpec.getSize(widthMeasureSpec);
+        int heightSpecMode = MeasureSpec.getMode(heightMeasureSpec);
+        int heightSpecSize = MeasureSpec.getSize(heightMeasureSpec);
+        if (widthSpecMode == MeasureSpec.AT_MOST && heightSpecMode == MeasureSpec.AT_MOST) {
+            setMeasuredDimension(ConvertUtil.dp2px(mContext, 360), ConvertUtil.dp2px(mContext, 360));
+        } else if (widthSpecMode == MeasureSpec.AT_MOST) {
+            setMeasuredDimension(ConvertUtil.dp2px(mContext, 360), heightSpecSize);
+        } else if (heightSpecMode == MeasureSpec.AT_MOST) {
+            setMeasuredDimension(widthSpecSize, ConvertUtil.dp2px(mContext, 360));
+        }
     }
 
     @Override
@@ -167,7 +186,10 @@ public class HeartRateLineView extends View {
                 width - paddingRight, height - paddingBottom - mXHeight);
 
         if (mVerticalLineX >= paddingLeft + mYWidth && mVerticalLineX <= width - paddingRight && mIsConsumeEvent) {
-            drawSelectRateResult(canvas, mVerticalLineX - mSelectRateShowWidth / 2, paddingTop, mVerticalLineX + mSelectRateShowWidth / 2, paddingTop + mSelectRateShowHeight);
+            //心率数值详情框
+            drawSelectRateResult(canvas, mVerticalLineX - mSelectRateShowWidth / 2, paddingTop,
+                    mVerticalLineX + mSelectRateShowWidth / 2, paddingTop + mSelectRateShowHeight);
+            //数值框下面的线
             drawVerticalLine(canvas, mVerticalLineX, paddingTop + mSelectRateShowHeight, height - paddingBottom - mXHeight);
         } else {
             drawTextSlidingToShow(canvas, paddingLeft, paddingTop, width - paddingRight, paddingTop + mSelectRateShowHeight);
@@ -205,11 +227,11 @@ public class HeartRateLineView extends View {
             textContent += 30;
         }
 
-        //TODO 辅助绘制的矩形框，正式版注释掉
-        mPaint.reset();
-        mPaint.setStyle(Paint.Style.STROKE);
-        mPaint.setColor(mColor);
-        canvas.drawRect(left, top, right, bottom, mPaint);
+        // 辅助绘制的矩形框，正式版注释掉
+//        mPaint.reset();
+//        mPaint.setStyle(Paint.Style.STROKE);
+//        mPaint.setColor(mColor);
+//        canvas.drawRect(left, top, right, bottom, mPaint);
     }
 
     /**
@@ -233,7 +255,6 @@ public class HeartRateLineView extends View {
         mPaint.setStyle(Paint.Style.FILL);
         mPaint.setAntiAlias(true);
 
-        Paint.FontMetrics fontMetrics = mTextPaint.getFontMetrics();
         //宽度分成24份
         float unitX = (right - left) / 24;
         //半径距离
@@ -251,11 +272,11 @@ public class HeartRateLineView extends View {
             canvas.drawCircle(x, top, radius, mPaint);
         }
 
-        //TODO 辅助绘制的矩形框
-        mPaint.reset();
-        mPaint.setStyle(Paint.Style.STROKE);
-        mPaint.setColor(mColor);
-        canvas.drawRect(left, top, right, bottom, mPaint);
+        //辅助绘制的矩形框
+//        mPaint.reset();
+//        mPaint.setStyle(Paint.Style.STROKE);
+//        mPaint.setColor(mColor);
+//        canvas.drawRect(left, top, right, bottom, mPaint);
     }
 
     /**
@@ -269,13 +290,12 @@ public class HeartRateLineView extends View {
     private void drawHeartrateLine(Canvas canvas, float left, float top, float right, float bottom) {
         mPaint.reset();
 
-        float radios = ConvertUtil.dp2px(mContext, 2);
-
         //宽度的一个单位，最大是24个单位
         float unitX = (right - left) / 24;
         //高度的一个单位，最大是180个单位
         float unitY = (bottom - top) / 180;
 
+        // 心率最高值，用来绘制渐变
         int maxRateValue = 0;
 
         // 绘制参考线 60-100
@@ -287,37 +307,35 @@ public class HeartRateLineView extends View {
         canvas.drawLines(lines, mPaint);
 
 
-        if (mMapHeartrateData == null || mMapHeartrateData.size() < 1) {
-            return;
-        } else if (mMapHeartrateData.size() == 1) {
+        //如果只有一条数据，就画一个点
+        if (mMapHeartrateData.size() == 1) {
             mPaint.reset();
             mPaint.setStyle(Paint.Style.FILL);
             mPaint.setColor(Color.WHITE);
+            mPaint.setAntiAlias(true);
             Float key = mMapHeartrateData.firstKey();
-            float x = key * unitX + left + radios;
+            float x = key * unitX + left;
             mListHeartrateDataX.clear();
             mListHeartrateDataTime.clear();
             mListHeartrateDataX.add(x);
             mListHeartrateDataTime.add(key);
-            canvas.drawCircle(x, bottom - mMapHeartrateData.get(key) * unitY, radios, mPaint);
+            canvas.drawCircle(x, bottom - mMapHeartrateData.get(key) * unitY, ConvertUtil.dp2px(mContext, 2), mPaint);
             mPaint.reset();
             return;
         }
 
+        //画折线
         mPaint.reset();
         mPaint.setStyle(Paint.Style.STROKE);
         mPaint.setColor(Color.WHITE);
         mPaint.setStrokeWidth(ConvertUtil.dp2px(mContext, 2));
         mPaint.setAntiAlias(true);
-
-        float firstKey = mMapHeartrateData.firstKey();
-
         Path path = new Path();
-        mPaint.setStyle(Paint.Style.STROKE);
         mListHeartrateDataX.clear();
         mListHeartrateDataTime.clear();
+        float firstKey = mMapHeartrateData.firstKey();
         for (Float key : mMapHeartrateData.keySet()) {
-            float x = key * unitX + left + radios;
+            float x = key * unitX + left;
             mListHeartrateDataX.add(x);
             mListHeartrateDataTime.add(key);
             if (key > mNowKey) {
@@ -331,15 +349,23 @@ public class HeartRateLineView extends View {
             maxRateValue = maxRateValue < mMapHeartrateData.get(key) ? mMapHeartrateData.get(key) : maxRateValue;
         }
         canvas.drawPath(path, mPaint);
-        path.lineTo(mNowKey * unitX + left + radios, bottom);
-        path.lineTo(firstKey * unitX + left + radios, bottom);
+
+
+        //draw 渐变色
+        path.lineTo(mNowKey * unitX + left, bottom);
+        path.lineTo(firstKey * unitX + left, bottom);
         path.close();
         int[] shadeColors = new int[]{Color.argb(0x99, 0xFF, 0xFF, 0xFF), Color.argb(0x00, 0xFF, 0xFF, 0xFF)};
         Shader mShader = new LinearGradient(0, bottom - maxRateValue * unitY, 0, bottom, shadeColors, null, Shader.TileMode.CLAMP);
         mPaint.setStyle(Paint.Style.FILL);
         mPaint.setShader(mShader);
         canvas.drawPath(path, mPaint);
-        mPaint.reset();
+
+        //辅助绘制的矩形框
+//        mPaint.reset();
+//        mPaint.setStyle(Paint.Style.STROKE);
+//        mPaint.setColor(mColor);
+//        canvas.drawRect(left, top, right, bottom, mPaint);
     }
 
     /**
@@ -354,50 +380,45 @@ public class HeartRateLineView extends View {
         mTextPaint.reset();
         mPaint.reset();
 
+        //绘制胶囊形状View
         mPaint.setColor(Color.WHITE);
+        mPaint.setStyle(Paint.Style.FILL);
         mPaint.setAntiAlias(true);
-
         float radius = (bottom - top) / 2;
-
-        RectF rectLeft = new RectF((int) left, (int) top, (int) (left + radius * 2), (int) bottom);
-        RectF rectRight = new RectF((int) (right - radius * 2), (int) top, (int) right, (int) bottom);
-
+        RectF rectLeft = new RectF(left, top, left + radius * 2, bottom);
+        RectF rectRight = new RectF(right - radius * 2, top, right, bottom);
         Path path = new Path();
         path.moveTo(left + radius, bottom);
         path.arcTo(rectLeft, 90, 180);
         path.lineTo(right - radius, top);
         path.arcTo(rectRight, -90, 180);
         path.close();
-
         canvas.drawPath(path, mPaint);
 
+        //draw 心率值
+        mTextPaint.setAntiAlias(true);
         mTextPaint.setColor(Color.parseColor("#FF2F63"));
         mTextPaint.setTextSize(mTextSize);
-        mTextPaint.setAntiAlias(true);
-        mTextPaint.setTextAlign(Paint.Align.LEFT);
         Paint.FontMetrics fontMetrics = mTextPaint.getFontMetrics();
-        float baseLine = (fontMetrics.bottom + fontMetrics.top) / 2;
-        canvas.drawText(mSelectRateShowValue + "", left + ConvertUtil.dp2px(mContext, 12), bottom + baseLine, mTextPaint);
-        mTextPaint.reset();
-
-        mTextPaint.setColor(Color.parseColor("#FF2F63"));
-        mTextPaint.setAntiAlias(true);
-        mTextPaint.setTextSize(mTextSize);
-        fontMetrics = mTextPaint.getFontMetrics();
-        baseLine = (fontMetrics.bottom + fontMetrics.top) / 2;
+        float baseLine = (bottom + top) / 2 + (fontMetrics.descent - fontMetrics.ascent) / 2 - fontMetrics.descent;
+        canvas.drawText(mSelectRateShowValue + "", left + ConvertUtil.dp2px(mContext, 12), baseLine, mTextPaint);
         mTextPaint.setTextAlign(Paint.Align.RIGHT);
-        canvas.drawText(mSelectRateShowTime, right - ConvertUtil.dp2px(mContext, 12), top - baseLine + mTextSize, mTextPaint);
-        canvas.drawText("BPM", right - ConvertUtil.dp2px(mContext, 12), bottom + baseLine, mTextPaint);
 
-        mTextPaint.reset();
-        mPaint.reset();
+        baseLine = ((bottom + top) / 2 + top) / 2 + (fontMetrics.descent - fontMetrics.ascent) / 2 - fontMetrics.descent;
+        canvas.drawText(mSelectRateShowTime, right - ConvertUtil.dp2px(mContext, 12), baseLine, mTextPaint);
+        baseLine = ((bottom + top) / 2 + bottom) / 2 + (fontMetrics.descent - fontMetrics.ascent) / 2 - fontMetrics.descent;
+        canvas.drawText("BPM", right - ConvertUtil.dp2px(mContext, 12), baseLine, mTextPaint);
 
+        // 辅助绘制的矩形框
+//        mPaint.reset();
+//        mPaint.setStyle(Paint.Style.STROKE);
+//        mPaint.setColor(mColor);
+//        canvas.drawRect(left, top, right, bottom, mPaint);
     }
 
     /**
      * 绘制“点击滑动以查看”
      *
-     * @param canvas
      * @param left   绘制区域的左侧坐标
      * @param top    绘图区域的顶部坐标
      * @param right  绘制区域的右侧坐标
@@ -407,18 +428,25 @@ public class HeartRateLineView extends View {
         mTextPaint.reset();
         mTextPaint.setColor(Color.parseColor("#66FFFFFF"));
         mTextPaint.setAntiAlias(true);
-        mTextPaint.setTextSize(ConvertUtil.sp2px(mContext, 14));
+        mTextPaint.setTextSize(mTextSize);
         mTextPaint.setTextAlign(Paint.Align.CENTER);
+
         Paint.FontMetrics fontMetrics = mTextPaint.getFontMetrics();
-        float baseLine = (fontMetrics.bottom + fontMetrics.top) / 2;
-        canvas.drawText("点按滑动以查看", (left + right) / 2, (top + bottom) / 2 - baseLine, mTextPaint);
+        float baseLine = (bottom + top) / 2 + (fontMetrics.descent - fontMetrics.ascent) / 2 - fontMetrics.descent;
+        canvas.drawText("点按滑动以查看", (left + right) / 2, baseLine, mTextPaint);
         mTextPaint.reset();
+
+        // 辅助绘制的矩形框
+//        mPaint.reset();
+//        mPaint.setStyle(Paint.Style.STROKE);
+//        mPaint.setColor(mColor);
+//        canvas.drawRect(left, top, right, bottom, mPaint);
+//        canvas.drawRect(left, top, right, (bottom + top) / 2, mPaint);
     }
 
     /**
      * 绘制滑动的线
      *
-     * @param canvas
      * @param left   绘制区域的左侧坐标
      * @param top    绘图区域的顶部坐标
      * @param bottom 绘制区域的底部坐标
@@ -429,27 +457,8 @@ public class HeartRateLineView extends View {
         mPaint.setColor(Color.WHITE);
         mPaint.setAntiAlias(true);
         canvas.drawLine(left, top, left, bottom, mPaint);
-        mPaint.reset();
     }
 
-
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        int widthSpecMode = MeasureSpec.getMode(widthMeasureSpec);
-        int widthSpecSize = MeasureSpec.getSize(widthMeasureSpec);
-        int heightSpecMode = MeasureSpec.getMode(heightMeasureSpec);
-        int heightSpecSize = MeasureSpec.getSize(heightMeasureSpec);
-        if (widthSpecMode == MeasureSpec.AT_MOST && heightSpecMode == MeasureSpec.AT_MOST) {// 使用wrap_content默认大小是200
-            setMeasuredDimension(600, 400);
-        } else if (widthSpecMode == MeasureSpec.AT_MOST) {
-            setMeasuredDimension(600, heightSpecSize);
-        } else if (heightSpecMode == MeasureSpec.AT_MOST) {
-            setMeasuredDimension(widthSpecSize, 400);
-        }
-
-
-    }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -460,9 +469,9 @@ public class HeartRateLineView extends View {
                     Log.e(TAG, "error data!");
                     break;
                 }
+
                 float x = event.getX();
                 int size = mListHeartrateDataX.size();
-
                 float firstX = mListHeartrateDataX.get(0);
                 float lastX = mListHeartrateDataX.get(size - 1);
                 if (x <= firstX) {
@@ -480,7 +489,7 @@ public class HeartRateLineView extends View {
                     mSelectRateShowValue = mMapHeartrateData.get(time);
                     break;
                 }
-                for (int i = 0; i < size - 1; i++) {
+                for (int i = 1; i < size - 1; i++) {
                     float nowX = mListHeartrateDataX.get(i);
                     float nextX = mListHeartrateDataX.get(i + 1);
                     if (x >= nowX && x <= nextX) {
@@ -502,7 +511,7 @@ public class HeartRateLineView extends View {
                 }
                 break;
             case MotionEvent.ACTION_UP:
-                mVerticalLineX = -1000;
+                mVerticalLineX = -1;
                 mIsConsumeEvent = false;
                 break;
             default:
@@ -517,7 +526,7 @@ public class HeartRateLineView extends View {
      */
     public void startAnimator() {
         ValueAnimator animator = ValueAnimator.ofFloat(mMapHeartrateData.firstKey(), mMapHeartrateData.lastKey());
-        animator.setDuration((long) (0.1 * mMapHeartrateData.size() * 1000));
+        animator.setDuration(1000L);
         animator.setInterpolator(new LinearInterpolator());
         animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
