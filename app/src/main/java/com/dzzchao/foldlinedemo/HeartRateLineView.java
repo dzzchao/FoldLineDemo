@@ -417,7 +417,7 @@ public class HeartRateLineView extends View {
     }
 
     /**
-     * 绘制“点击滑动以查看”
+     * 绘制“长击滑动以查看”
      *
      * @param left   绘制区域的左侧坐标
      * @param top    绘图区域的顶部坐标
@@ -433,7 +433,7 @@ public class HeartRateLineView extends View {
 
         Paint.FontMetrics fontMetrics = mTextPaint.getFontMetrics();
         float baseLine = (bottom + top) / 2 + (fontMetrics.descent - fontMetrics.ascent) / 2 - fontMetrics.descent;
-        canvas.drawText("点按滑动以查看", (left + right) / 2, baseLine, mTextPaint);
+        canvas.drawText("长按滑动以查看", (left + right) / 2, baseLine, mTextPaint);
         mTextPaint.reset();
 
         // 辅助绘制的矩形框
