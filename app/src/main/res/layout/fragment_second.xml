@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".fragment.SecondFragment">
+
+    <!-- TODO: Update blank fragment layout -->
+    <com.dzzchao.foldlinedemo.HeartRateLineView
+        android:id="@+id/heartrate_lineview_second"
+        android:layout_width="match_parent"
+        android:layout_height="400dp"
+        android:background="@drawable/heartrate_bg"
+        android:paddingBottom="20dp" />
+
+
+    <TextView
+        android:layout_gravity="bottom"
+        android:text="Fragment2"
+        android:textSize="24sp"
+        android:gravity="center_horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+
+</FrameLayout>

@@ -6,12 +6,12 @@
     tools:context=".MainActivity">
 
 
-    <com.dzzchao.foldlinedemo.HeartRateLineView
-        android:id="@+id/heartrate_lineview"
+    <android.support.v4.view.ViewPager
+        android:id="@+id/viewPager"
         android:layout_width="match_parent"
-        android:layout_height="400dp"
-        android:background="@drawable/heartrate_bg"
-        android:paddingBottom="20dp" />
+        android:layout_height="match_parent">
+
+    </android.support.v4.view.ViewPager>
 
 
 </android.support.constraint.ConstraintLayout>
